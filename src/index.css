@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* On force le style sombre sur tout le corps de la page */
+body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+}

@@ -1,33 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-// 📋 NOTRE CATALOGUE DE COMPOSANTS (Tu pourras en ajouter d'autres ici !)
-const AVAILABLE_COMPONENTS = [
-  "Processeur Intel Core i9", "Processeur AMD Ryzen 7",
-  "Carte Graphique NVIDIA RTX 4090", "Carte Graphique NVIDIA RTX 4070",
-  "32 Go RAM DDR5", "16 Go RAM DDR4",
-  "SSD 2 To NVMe", "SSD 1 To NVMe",
-  "Watercooling RGB", "Boîtier Vitré Corsair"
-];
+// 📋 CATALOGUE 
+const COMPONENT_CATEGORIES = {
+  "Processeur": ["Intel i5-14600K", "Intel i7-14700K", "Intel i9-14900K", "AMD Ryzen 7 7800X3D", "AMD Ryzen 9 7950X3D"],
+  "Carte Graphique": ["RTX 4060 Ti (8Go)", "RTX 4070 Super (12Go)", "RTX 4080 Super (16Go)", "RTX 4090 (24Go)", "RX 7900 XTX (24Go)"],
+  "Carte Mère": ["MSI B760 Gaming", "ASUS ROG Strix Z790", "Gigabyte X670E Aorus"],
+  "Mémoire RAM": ["16 Go DDR5 5200MHz", "32 Go DDR5 6000MHz CL30", "64 Go DDR5 RGB 6400MHz"],
+  "Stockage M.2": ["1 To NVMe Gen4", "2 To NVMe Gen4 HighSpeed", "4 To NVMe Gen4"],
+  "Refroidissement": ["AirCooler Be Quiet!", "AIO 240mm RGB", "AIO 360mm LCD Screen"],
+  "Alimentation": ["750W 80+ Gold", "850W 80+ Gold Modulaire", "1000W 80+ Platinum", "1200W PCIe 5.0"],
+  "Boîtier & OS": ["Boîtier Flux d'air", "Boîtier Full Verre Trempé", "Windows 11 Pro installé", "Pack LED RGB Corsair"]
+};
 
 const Admin = () => {
   const [products, setProducts] = useState([]);
-  
-  // ⚙️ GESTION DU PANNEAU DÉROULANT
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [selectedComps, setSelectedComps] = useState([]);
-
-  const [newProduct, setNewProduct] = useState({
-    nom: '',
-    prix: '',
-    description: '',
-    stock_quantite: 1
-  });
+  const [newProduct, setNewProduct] = useState({ nom: '', prix: '', description: '', stock_quantite: 1 });
 
   const token = localStorage.getItem('token');
 
-  // 🔄 Chargement des produits
-  const fetchProducts = () => {
+  
+  const fetchProducts = useCallback(() => {
     axios.get('http://127.0.0.1:8000/api/products', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -35,175 +31,156 @@ const Admin = () => {
       let data = res.data['hydra:member'] || res.data.member || res.data;
       if (Array.isArray(data)) setProducts(data);
     })
-    .catch(err => console.error("Erreur de chargement", err));
-  };
+    .catch(err => console.error("Erreur API", err));
+  }, [token]);
 
-  useEffect(() => {
-    fetchProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => { 
+    fetchProducts(); 
+  }, [fetchProducts]);
 
-  // 🧠 LE CERVEAU : Met à jour la description quand on coche une case
-  useEffect(() => {
-    if (selectedComps.length > 0) {
-      // On prend les composants cochés et on les sépare par un tiret
-      const autoDescription = "Configuration sur mesure comprenant : \n- " + selectedComps.join('\n- ');
-      setNewProduct(prev => ({ ...prev, description: autoDescription }));
-    } else {
-      setNewProduct(prev => ({ ...prev, description: '' }));
-    }
-  }, [selectedComps]);
-
-  // ☑️ Fonction quand on coche/décoche un composant
   const handleCheck = (comp) => {
-    if (selectedComps.includes(comp)) {
-      // Si déjà coché, on le retire
-      setSelectedComps(selectedComps.filter(c => c !== comp));
-    } else {
-      // Sinon, on l'ajoute
-      setSelectedComps([...selectedComps, comp]);
-    }
+    let updatedComps = selectedComps.includes(comp)
+      ? selectedComps.filter(c => c !== comp)
+      : [...selectedComps, comp];
+    
+    setSelectedComps(updatedComps);
+
+    // Système automatique pour Création ET Modification
+    const autoDesc = updatedComps.length > 0 
+      ? "⚡ CONFIGURATION SUR MESURE : \n" + updatedComps.map(c => `• ${c}`).join('\n') 
+      : newProduct.description; // Garde l'ancienne description si on décoche tout
+    
+    setNewProduct(prev => ({ ...prev, description: autoDesc }));
   };
 
-  // ➕ Fonction pour AJOUTER un PC à l'API
-  const handleAddProduct = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    const url = editingId ? `http://127.0.0.1:8000/api/products/${editingId}` : 'http://127.0.0.1:8000/api/products';
+    const method = editingId ? 'patch' : 'post';
+    const contentType = editingId ? 'application/merge-patch+json' : 'application/ld+json';
 
-    axios.post('http://127.0.0.1:8000/api/products', {
-      nom: newProduct.nom,
-      description: newProduct.description,
+    axios[method](url, {
+      ...newProduct,
       prix: String(newProduct.prix),
-      stock_quantite: parseInt(newProduct.stock_quantite),
-      is_active: true
+      stock_quantite: parseInt(newProduct.stock_quantite)
     }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/ld+json'
-      }
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': contentType }
     })
     .then(() => {
       fetchProducts();
-      // On remet tout à zéro et on ferme le panneau
-      setNewProduct({ nom: '', prix: '', description: '', stock_quantite: 1 });
-      setSelectedComps([]);
-      setIsFormOpen(false); 
+      resetForm();
     })
-    .catch(err => console.error("Erreur lors de l'ajout", err));
+    .catch(() => alert("Erreur lors de l'enregistrement."));
   };
 
-  // 🗑️ Supprimer
+  const resetForm = () => {
+    setNewProduct({ nom: '', prix: '', description: '', stock_quantite: 1 });
+    setSelectedComps([]);
+    setEditingId(null);
+    setIsFormOpen(false);
+  };
+
+  const startEdit = (p) => {
+    setNewProduct({ nom: p.nom, prix: p.prix, description: p.description, stock_quantite: p.stock_quantite });
+    setEditingId(p.id);
+    setSelectedComps([]); 
+    setIsFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const deleteProduct = (id) => {
-    if (window.confirm("🚨 Supprimer définitivement ce PC ?")) {
+    if (window.confirm("Supprimer ce PC ?")) {
       axios.delete(`http://127.0.0.1:8000/api/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
-      }).then(() => fetchProducts());
+      }).then(fetchProducts);
     }
   };
 
-  // 📦 Rupture
-  const setOutOfStock = (id) => {
-    axios.patch(`http://127.0.0.1:8000/api/products/${id}`, 
-      { stock_quantite: 0 }, 
-      { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/merge-patch+json' } }
-    ).then(() => fetchProducts());
-  };
-
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-      <h2 style={{ textAlign: 'center', borderBottom: '2px solid #282c34', paddingBottom: '10px' }}>
-        🛡️ Tableau de Bord Administrateur
+    <div className="bg-slate-950 min-h-screen text-purple-100 p-4 md:p-8">
+      <h2 className="text-4xl font-black text-center mb-10 uppercase tracking-tighter text-white">
+        Terminal <span className="text-purple-500 shadow-purple-500/40 shadow-lg">Admin</span>
       </h2>
 
-      {/* 🔘 BOUTON POUR OUVRIR LE PANNEAU */}
-      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+      <div className="text-center mb-10">
         <button 
-          onClick={() => setIsFormOpen(!isFormOpen)}
-          style={{ padding: '12px 25px', backgroundColor: isFormOpen ? '#7f8c8d' : '#2980b9', color: 'white', border: 'none', borderRadius: '5px', fontSize: '16px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s' }}
+          onClick={() => isFormOpen ? resetForm() : setIsFormOpen(true)}
+          className="bg-purple-600 hover:bg-purple-500 text-white px-10 py-4 rounded-2xl font-black shadow-[0_0_25px_rgba(147,51,234,0.4)] transition-all"
         >
-          {isFormOpen ? '⬆️ Fermer le configurateur' : '➕ Créer un nouveau PC'}
+          {isFormOpen ? '✖ ANNULER' : '➕ CRÉER UNE CONFIGURATION'}
         </button>
       </div>
 
-      {/* 🔽 LE PANNEAU DÉROULANT (S'affiche uniquement si isFormOpen est true) */}
       {isFormOpen && (
-        <div style={{ backgroundColor: '#f9f9f9', padding: '25px', borderRadius: '8px', marginTop: '15px', border: '1px solid #ddd', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', animation: 'fadeIn 0.3s' }}>
+        <div className="bg-slate-900 border border-purple-500/40 p-8 rounded-3xl mb-16 max-w-6xl mx-auto shadow-2xl animate-in slide-in-from-top duration-300">
+          <h3 className="text-xl font-bold text-white mb-6 uppercase tracking-widest">
+            {editingId ? '📝 Mode Edition' : '⚙️ Configurateur Expert'}
+          </h3>
           
-          <h3 style={{ marginTop: 0, color: '#2c3e50' }}>⚙️ Configurateur Rapide</h3>
-          
-          {/* Les Cases à cocher */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginBottom: '20px', padding: '15px', backgroundColor: 'white', borderRadius: '5px', border: '1px solid #eee' }}>
-            {AVAILABLE_COMPONENTS.map((comp, index) => (
-              <label key={index} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                <input 
-                  type="checkbox" 
-                  checked={selectedComps.includes(comp)}
-                  onChange={() => handleCheck(comp)}
-                />
-                {comp}
-              </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {Object.entries(COMPONENT_CATEGORIES).map(([category, items]) => (
+              <div key={category} className="bg-slate-800/40 p-3 rounded-xl border border-slate-700">
+                <h4 className="text-purple-400 text-[10px] font-black uppercase mb-2 tracking-tighter">{category}</h4>
+                <div className="space-y-1">
+                  {items.map((item, i) => (
+                    <label key={i} className="flex items-center gap-2 text-[11px] cursor-pointer hover:text-white transition-colors">
+                      <input type="checkbox" checked={selectedComps.includes(item)} onChange={() => handleCheck(item)} className="w-3 h-3 accent-purple-500" />
+                      {item}
+                    </label>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
 
-          <form onSubmit={handleAddProduct} style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
-            <div style={{ flex: '1 1 100%', display: 'flex', gap: '15px' }}>
-              <input type="text" placeholder="Nom de la machine (ex: PC Gamer Alpha)" required value={newProduct.nom} onChange={(e) => setNewProduct({ ...newProduct, nom: e.target.value })} style={{ flex: '2', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} />
-              <input type="number" placeholder="Prix (€)" step="0.01" required value={newProduct.prix} onChange={(e) => setNewProduct({ ...newProduct, prix: e.target.value })} style={{ flex: '1', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} />
-              <input type="number" placeholder="Stock" required value={newProduct.stock_quantite} onChange={(e) => setNewProduct({ ...newProduct, stock_quantite: e.target.value })} style={{ flex: '1', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <input type="text" placeholder="Désignation du PC" className="bg-slate-950 border border-slate-700 p-4 rounded-xl focus:border-purple-500 outline-none text-white font-bold" value={newProduct.nom} onChange={e => setNewProduct({...newProduct, nom: e.target.value})} required />
+              <input type="number" step="0.01" placeholder="Prix (€)" className="bg-slate-950 border border-slate-700 p-4 rounded-xl focus:border-purple-500 outline-none text-purple-400 font-black" value={newProduct.prix} onChange={e => setNewProduct({...newProduct, prix: e.target.value})} required />
+              <input type="number" placeholder="Quantité stock" className="bg-slate-950 border border-slate-700 p-4 rounded-xl focus:border-purple-500 outline-none text-emerald-400 font-bold" value={newProduct.stock_quantite} onChange={e => setNewProduct({...newProduct, stock_quantite: e.target.value})} required />
             </div>
-            
-            {/* La description générée automatiquement (mais on peut quand même la modifier à la main si besoin) */}
-            <textarea 
-              placeholder="La description se générera automatiquement ici..." 
-              required 
-              value={newProduct.description} 
-              onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-              style={{ flex: '1 1 100%', padding: '15px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '100px', backgroundColor: '#f1f8ff' }}
-            />
-            
-            <button type="submit" style={{ padding: '12px 20px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', width: '100%', fontSize: '16px' }}>
-              ✅ Sauvegarder et publier
+
+            <textarea className="w-full bg-slate-950 border border-slate-700 p-5 rounded-xl h-40 focus:border-purple-500 outline-none text-slate-300 font-mono text-sm" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} />
+
+            <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-4 rounded-xl transition-all shadow-xl uppercase">
+              {editingId ? '💾 Valider les changements' : '🚀 Lancer la production'}
             </button>
           </form>
         </div>
       )}
-      
-      {/* LE TABLEAU... */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '30px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#282c34', color: 'white', textAlign: 'left' }}>
-            <th style={{ padding: '15px' }}>Nom du PC</th>
-            <th style={{ padding: '15px', textAlign: 'center' }}>Prix</th>
-            <th style={{ padding: '15px', textAlign: 'center' }}>Stock</th>
-            <th style={{ padding: '15px', textAlign: 'center' }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map(p => (
-            <tr key={p.id} style={{ borderBottom: '1px solid #ddd', backgroundColor: p.stock_quantite === 0 ? '#ffeaea' : 'white' }}>
-              <td style={{ padding: '15px', fontWeight: 'bold' }}>{p.nom}</td>
-              <td style={{ padding: '15px', textAlign: 'center', color: '#e74c3c', fontWeight: 'bold' }}>{p.prix} €</td>
-              <td style={{ padding: '15px', textAlign: 'center', color: p.stock_quantite > 0 ? '#27ae60' : '#e74c3c', fontWeight: 'bold' }}>
-                {p.stock_quantite}
-              </td>
-              <td style={{ padding: '15px', textAlign: 'center' }}>
-                <button 
-                  onClick={() => setOutOfStock(p.id)} 
-                  disabled={p.stock_quantite === 0}
-                  style={{ marginRight: '10px', padding: '8px 12px', backgroundColor: p.stock_quantite === 0 ? '#ccc' : '#f39c12', color: 'white', border: 'none', borderRadius: '4px', cursor: p.stock_quantite === 0 ? 'not-allowed' : 'pointer' }}
-                >
-                  ⚠️ Rupture
-                </button>
-                <button 
-                  onClick={() => deleteProduct(p.id)} 
-                  style={{ padding: '8px 12px', backgroundColor: '#c0392b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                  🗑️ Supprimer
-                </button>
-              </td>
+
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+        <table className="w-full text-left">
+          <thead className="bg-slate-800/80 text-purple-400 text-xs font-black uppercase">
+            <tr>
+              <th className="p-6">Machine</th>
+              <th className="p-6 text-center">Prix Net</th>
+              <th className="p-6 text-center">Stock</th>
+              <th className="p-6 text-right">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-800">
+            {products.map(p => (
+              <tr key={p.id} className="hover:bg-purple-500/5 transition-colors group">
+                <td className="p-6">
+                  <div className="font-black text-white group-hover:text-purple-300 transition-colors uppercase">{p.nom}</div>
+                  <div className="text-[10px] text-slate-600 font-mono">UUID: {p.id}</div>
+                </td>
+                <td className="p-6 text-center">
+                  <span className="text-purple-400 font-black italic">{p.prix}€</span>
+                </td>
+                <td className="p-6 text-center font-bold text-emerald-400">
+                  {p.stock_quantite} <span className="text-[10px] opacity-50">PCS</span>
+                </td>
+                <td className="p-6 text-right">
+                  <button onClick={() => startEdit(p)} className="bg-slate-800 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-xs font-bold mr-2">EDITER</button>
+                  <button onClick={() => deleteProduct(p.id)} className="text-rose-600 hover:text-rose-400 text-xs font-bold px-2">SUPPRIMER</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

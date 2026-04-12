@@ -1,82 +1,73 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// On n'oublie pas de récupérer la fonction addToCart envoyée par App.jsx !
 const Home = ({ addToCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-
     axios.get('http://127.0.0.1:8000/api/products', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     })
-      .then(response => {
-        let data = response.data['hydra:member'] || response.data.member || response.data;
-
-        if (Array.isArray(data)) {
-          setProducts(data);
-        } else {
-          console.error("Format inconnu :", data);
-          setProducts([]);
-        }
-        
+      .then(res => {
+        let data = res.data['hydra:member'] || res.data.member || res.data;
+        if (Array.isArray(data)) setProducts(data);
         setLoading(false);
       })
-      .catch(error => {
-        console.error("Erreur API :", error);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <h2 style={{ textAlign: 'center', marginTop: '50px' }}>⏳ Récupération du stock en cours...</h2>;
+  if (loading) return (
+    <div className="flex justify-center mt-20">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+    </div>
+  );
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif', padding: '20px' }}>
-      <h2 style={{ textAlign: 'center', borderBottom: '2px solid #282c34', paddingBottom: '10px' }}>
-        💻 Nos Configurations PC
+    <div>
+      <h2 className="text-3xl font-black text-center mb-12 uppercase tracking-tighter text-white">
+         <span className="text-purple-500 shadow-purple-500/50">Hardware</span> Disponibles
       </h2>
       
-      {products.length === 0 ? (
-        <p style={{ textAlign: 'center', marginTop: '20px', color: 'red' }}>Aucun produit trouvé dans la base de données.</p>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginTop: '30px' }}>
-          {products.map(product => (
-            <div key={product.id} style={{ border: '1px solid #ddd', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <h3 style={{ margin: '0 0 10px 0', color: '#282c34' }}>{product.nom}</h3>
-                <p style={{ color: '#555', fontSize: '14px', minHeight: '40px' }}>{product.description}</p>
-                <p style={{ fontSize: '12px', fontWeight: 'bold', color: product.stock_quantite > 0 ? '#27ae60' : '#e74c3c' }}>
-                  {product.stock_quantite > 0 ? `📦 En stock : ${product.stock_quantite}` : '❌ Rupture de stock'}
-                </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {products.map((product) => (
+          <div key={product.id} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-purple-500/50 transition-all group relative overflow-hidden">
+            
+            {/* Effet de halo au survol */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl blur opacity-0 group-hover:opacity-10 transition duration-500"></div>
+
+            <div className="relative">
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">
+                {product.nom}
+              </h3>
+              <p className="text-slate-400 text-sm mb-6 line-clamp-2 italic">
+                {product.description}
+              </p>
+              
+              <div className="flex items-center gap-3 mb-6">
+                <span className={`h-2 w-2 rounded-full ${product.stock_quantite > 0 ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-red-500'}`}></span>
+                <span className="text-xs font-mono text-slate-500 uppercase tracking-widest">
+                  Stock: {product.stock_quantite}
+                </span>
               </div>
-              <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#e74c3c' }}>{product.prix} €</span>
-                
-                {/* Le fameux bouton mis à jour avec le onClick ! */}
+
+              <div className="flex justify-between items-center pt-4 border-t border-slate-800">
+                <span className="text-2xl font-black text-purple-400 italic">
+                  {product.prix} €
+                </span>
                 <button 
-                  onClick={() => addToCart(product)} 
+                  onClick={() => addToCart(product)}
                   disabled={product.stock_quantite === 0}
-                  style={{ 
-                    padding: '10px 15px', 
-                    backgroundColor: product.stock_quantite > 0 ? '#3498db' : '#bdc3c7', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '5px', 
-                    cursor: product.stock_quantite > 0 ? 'pointer' : 'not-allowed', 
-                    fontWeight: 'bold' 
-                  }}
+                  className="bg-purple-600 hover:bg-purple-500 disabled:bg-slate-800 disabled:text-slate-600 text-white px-5 py-2 rounded-lg font-bold transition-all shadow-lg active:scale-90"
                 >
-                  🛒 Ajouter
+                  AJOUTER
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
