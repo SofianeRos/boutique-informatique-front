@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../services/axiosConfig';
 
 const Home = ({ addToCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    axios.get('http://127.0.0.1:8000/api/products', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    axiosInstance.get('/products')
       .then(res => {
         let data = res.data['hydra:member'] || res.data.member || res.data;
         if (Array.isArray(data)) setProducts(data);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Erreur lors du chargement des produits:', err);
+        setLoading(false);
+      });
   }, []);
 
   if (loading) return (

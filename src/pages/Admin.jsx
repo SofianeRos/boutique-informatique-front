@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import axiosInstance from '../services/axiosConfig';
 
 // 📋 CATALOGUE 
 const COMPONENT_CATEGORIES = {
@@ -20,19 +20,14 @@ const Admin = () => {
   const [selectedComps, setSelectedComps] = useState([]);
   const [newProduct, setNewProduct] = useState({ nom: '', prix: '', description: '', stock_quantite: 1 });
 
-  const token = localStorage.getItem('token');
-
-  
   const fetchProducts = useCallback(() => {
-    axios.get('http://127.0.0.1:8000/api/products', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    axiosInstance.get('/products')
     .then(res => {
       let data = res.data['hydra:member'] || res.data.member || res.data;
       if (Array.isArray(data)) setProducts(data);
     })
     .catch(err => console.error("Erreur API", err));
-  }, [token]);
+  }, []);
 
   useEffect(() => { 
     fetchProducts(); 
@@ -55,16 +50,16 @@ const Admin = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const url = editingId ? `http://127.0.0.1:8000/api/products/${editingId}` : 'http://127.0.0.1:8000/api/products';
+    const url = editingId ? `/products/${editingId}` : '/products';
     const method = editingId ? 'patch' : 'post';
     const contentType = editingId ? 'application/merge-patch+json' : 'application/ld+json';
 
-    axios[method](url, {
+    axiosInstance[method](url, {
       ...newProduct,
       prix: String(newProduct.prix),
       stock_quantite: parseInt(newProduct.stock_quantite)
     }, {
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': contentType }
+      headers: { 'Content-Type': contentType }
     })
     .then(() => {
       fetchProducts();
@@ -90,9 +85,7 @@ const Admin = () => {
 
   const deleteProduct = (id) => {
     if (window.confirm("Supprimer ce PC ?")) {
-      axios.delete(`http://127.0.0.1:8000/api/products/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }).then(fetchProducts);
+      axiosInstance.delete(`/products/${id}`).then(fetchProducts);
     }
   };
 
