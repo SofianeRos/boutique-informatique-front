@@ -35,7 +35,7 @@ const Home = ({ addToCart }) => {
           <div key={product.id} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-purple-500/50 transition-all group relative overflow-hidden">
             
             {/* Effet de halo au survol */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl blur opacity-0 group-hover:opacity-10 transition duration-500"></div>
+            <div className="absolute -inset-1 bg-linear-to-r from-purple-600 to-indigo-600 rounded-2xl blur opacity-0 group-hover:opacity-10 transition duration-500"></div>
 
             <div className="relative">
               <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-400 transition-colors">

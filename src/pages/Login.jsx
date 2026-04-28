@@ -17,7 +17,7 @@ const Login = ({ onLoginSuccess }) => {
     
     try {
       const response = await axiosInstance.post('/login_check', {
-        username: email,
+        email: email,
         password: password
       });
 
@@ -25,16 +25,19 @@ const Login = ({ onLoginSuccess }) => {
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         
-        // Notifier le parent (App.jsx) que la connexion a réussi
+        // Extraire les roles de la réponse (par défaut: ROLE_USER)
+        const roles = response.data.user?.roles || ['ROLE_USER'];
+        
+        // Notifier le parent (App.jsx) que la connexion a réussi + roles
         if (onLoginSuccess) {
-          onLoginSuccess(response.data.token);
+          onLoginSuccess(response.data.token, roles);
         }
 
         setMessageType('success');
         setMessage('✅ Connexion réussie ! Redirection en cours...');
         
         setTimeout(() => {
-          navigate('/admin');
+          navigate('/');
         }, 1000);
       } else {
         throw new Error('Aucun token reçu');
@@ -65,7 +68,7 @@ const Login = ({ onLoginSuccess }) => {
         <div className="bg-slate-900 border border-slate-800 p-10 rounded-2xl shadow-2xl relative overflow-hidden group">
           
           {/* Effet de halo au survol */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
+          <div className="absolute -inset-1 bg-linear-to-r from-purple-600 to-indigo-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
 
           <div className="relative">
             <div className="text-center mb-10">

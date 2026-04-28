@@ -2,21 +2,26 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 import Home from './pages/Home';
 import Admin from './pages/Admin';
 import Cart from './pages/Cart';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authToken, setAuthToken] = useState(null);
+  const [userRoles, setUserRoles] = useState([]);
 
   // Vérifier si un token existe au chargement
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const roles = JSON.parse(localStorage.getItem('userRoles') || '[]');
     if (token) {
       setAuthToken(token);
       setIsAuthenticated(true);
+      setUserRoles(roles);
     }
   }, []);
 
@@ -24,15 +29,19 @@ function App() {
     setCart([...cart, product]);
   };
 
-  const handleLoginSuccess = (token) => {
+  const handleLoginSuccess = (token, roles = []) => {
     setAuthToken(token);
     setIsAuthenticated(true);
+    setUserRoles(roles);
+    localStorage.setItem('userRoles', JSON.stringify(roles));
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userRoles');
     setAuthToken(null);
     setIsAuthenticated(false);
+    setUserRoles([]);
     window.location.href = '/';
   };
 
@@ -65,11 +74,18 @@ function App() {
               </>
             )}
 
-            {/* Admin - Visible seulement si connecté */}
+            {/* Admin - Visible seulement si connecté ET admin */}
             {isAuthenticated && (
-              <Link to="/admin" className="text-slate-300 font-bold hover:text-purple-400 transition-all uppercase tracking-widest text-sm">
-                Admin
-              </Link>
+              <>
+                <Link to="/profile" className="text-slate-300 font-bold hover:text-purple-400 transition-all uppercase tracking-widest text-sm">
+                  Mon Profil
+                </Link>
+                {userRoles && userRoles.includes('ROLE_ADMIN') && (
+                  <Link to="/admin" className="text-orange-400 font-black hover:text-orange-300 transition-all uppercase tracking-widest text-sm">
+                    ⚙️ Admin
+                  </Link>
+                )}
+              </>
             )}
           </div>
 
@@ -114,7 +130,8 @@ function App() {
           <Route path="/" element={<Home addToCart={addToCart} />} />
           <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
           <Route path="/register" element={<Register onRegisterSuccess={handleLoginSuccess} />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<Profile />} />} />
+          <Route path="/admin" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<Admin />} />} />
           <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
         </Routes>
       </main>

@@ -51,7 +51,7 @@ const Cart = ({ cart, setCart }) => {
           </div>
 
           {/* 💰 RÉCAPITULATIF */}
-          <div className="bg-gradient-to-r from-purple-600/20 to-indigo-600/20 border border-purple-500/30 rounded-2xl p-8 mb-8 shadow-lg">
+          <div className="bg-linear-to-r from-purple-600/20 to-indigo-600/20 border border-purple-500/30 rounded-2xl p-8 mb-8 shadow-lg">
             <div className="flex justify-between items-center">
               <h3 className="text-2xl font-black text-white uppercase tracking-widest">
                 Total à payer

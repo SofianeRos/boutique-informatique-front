@@ -64,8 +64,8 @@ const Register = ({ onRegisterSuccess }) => {
     setMessage('');
     
     try {
-      // Adapter cette requête selon votre API Symfony
-      const response = await axiosInstance.post('/users', {
+      // Appel à l'endpoint d'enregistrement sécurisé
+      const response = await axiosInstance.post('/auth/register', {
         username: formData.username,
         email: formData.email,
         password: formData.password,
@@ -77,16 +77,19 @@ const Register = ({ onRegisterSuccess }) => {
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         
-        // Notifier le parent (App.jsx) que l'inscription a réussi
+        // Extraire les roles de la réponse (par défaut: ROLE_USER)
+        const roles = response.data.user?.roles || ['ROLE_USER'];
+        
+        // Notifier le parent (App.jsx) que l'inscription a réussi + roles
         if (onRegisterSuccess) {
-          onRegisterSuccess(response.data.token);
+          onRegisterSuccess(response.data.token, roles);
         }
 
         setMessageType('success');
         setMessage('✅ Inscription réussie ! Redirection en cours...');
         
         setTimeout(() => {
-          navigate('/admin');
+          navigate('/');
         }, 1000);
       } else {
         // Si pas de token, rediriger vers login
@@ -126,7 +129,7 @@ const Register = ({ onRegisterSuccess }) => {
         <div className="bg-slate-900 border border-slate-800 p-10 rounded-2xl shadow-2xl relative overflow-hidden group">
           
           {/* Effet de halo au survol */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
+          <div className="absolute -inset-1 bg-linear-to-r from-purple-600 to-indigo-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
 
           <div className="relative">
             <div className="text-center mb-10">
