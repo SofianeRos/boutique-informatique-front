@@ -89,7 +89,7 @@ const Register = ({ onRegisterSuccess }) => {
         setMessage('✅ Inscription réussie ! Redirection en cours...');
         
         setTimeout(() => {
-          navigate('/');
+          navigate('/home');
         }, 1000);
       } else {
         // Si pas de token, rediriger vers login

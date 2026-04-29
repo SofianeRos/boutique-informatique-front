@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import axiosInstance from '../services/axiosConfig';
 
 const Login = ({ onLoginSuccess }) => {
@@ -23,21 +24,39 @@ const Login = ({ onLoginSuccess }) => {
 
       // Vérifier que le token est bien présent
       if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
+        const token = response.data.token;
+        localStorage.setItem('token', token);
         
-        // Extraire les roles de la réponse (par défaut: ROLE_USER)
-        const roles = response.data.user?.roles || ['ROLE_USER'];
+        console.log('🔍 REPONSE LOGIN COMPLETE:', JSON.stringify(response.data, null, 2));
         
-        // Notifier le parent (App.jsx) que la connexion a réussi + roles
-        if (onLoginSuccess) {
-          onLoginSuccess(response.data.token, roles);
+        // ✅ DÉCODER LE JWT POUR EXTRAIRE LES RÔLES
+        try {
+          const decodedToken = jwtDecode(token);
+          console.log('🔓 JWT DECODED:', decodedToken);
+          
+          // Extraire les rôles du payload du JWT
+          const roles = decodedToken.roles || ['ROLE_USER'];
+          console.log('✅ ROLES EXTRAITS DU JWT:', roles);
+          console.log('✅ EST ADMIN?', roles.includes('ROLE_ADMIN') ? 'OUI ✅' : 'NON ❌');
+          
+          // Notifier le parent (App.jsx) que la connexion a réussi + roles
+          if (onLoginSuccess) {
+            onLoginSuccess(token, roles);
+          }
+        } catch (error) {
+          console.error('❌ ERREUR DECODAGE JWT:', error);
+          // Fallback: utiliser ROLE_USER si le décodage échoue
+          console.log('⚠️ Utilisation du fallback: ROLE_USER');
+          if (onLoginSuccess) {
+            onLoginSuccess(token, ['ROLE_USER']);
+          }
         }
 
         setMessageType('success');
         setMessage('✅ Connexion réussie ! Redirection en cours...');
         
         setTimeout(() => {
-          navigate('/');
+          navigate('/home');
         }, 1000);
       } else {
         throw new Error('Aucun token reçu');
