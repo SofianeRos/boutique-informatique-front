@@ -92,23 +92,26 @@ const Admin = () => {
             </div>
           </Link>
 
-          {/* Section Statistiques (Futur) */}
-          <div className="group bg-slate-900 border border-slate-800 rounded-xl p-8 opacity-50 cursor-not-allowed">
+          {/* Section Commandes (Nouveau) */}
+          <Link 
+            to="/admin/orders"
+            className="group bg-slate-900 border border-slate-800 rounded-xl p-8 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 transition-all cursor-pointer"
+          >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-2xl font-black text-white">
-                  Statistiques
+                <h2 className="text-2xl font-black text-white group-hover:text-emerald-400 transition-colors">
+                  Commandes
                 </h2>
-                <p className="text-slate-400 text-sm mt-1">Rapports et données</p>
+                <p className="text-slate-400 text-sm mt-1">Historique des achats</p>
               </div>
             </div>
             <p className="text-slate-400 mb-4">
-              Vue d'ensemble des ventes, événements et activités. Exporter les rapports.
+              Gérez et visualisez toutes les commandes effectuées par les utilisateurs sur la plateforme.
             </p>
-            <div className="text-slate-500 text-sm font-bold">
-              Bientôt disponible
+            <div className="flex gap-2 text-emerald-400 text-sm font-bold">
+              <span>Voir l'historique</span>
             </div>
-          </div>
+          </Link>
 
         </div>
 

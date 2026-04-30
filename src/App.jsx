@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Admin from './pages/Admin';
 import AdminProducts from './pages/AdminProducts';
 import AdminUsers from './pages/AdminUsers';
+import AdminOrders from './pages/AdminOrders';
 import Cart from './pages/Cart';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
@@ -128,6 +129,7 @@ function App() {
           <Route path="/admin/products" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<AdminProducts />} requiredRole="ROLE_ADMIN" userRoles={userRoles} />} />
           <Route path="/admin/events" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<AdminEvents />} requiredRole="ROLE_ADMIN" userRoles={userRoles} />} />
           <Route path="/admin/users" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<AdminUsers />} requiredRole="ROLE_ADMIN" userRoles={userRoles} />} />
+          <Route path="/admin/orders" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<AdminOrders />} requiredRole="ROLE_ADMIN" userRoles={userRoles} />} />
           <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<Profile />} />} />
           <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
           <Route path="/success" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<PaymentSuccess setCart={setCart} />} />} />

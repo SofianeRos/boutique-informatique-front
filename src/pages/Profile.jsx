@@ -4,12 +4,13 @@ import axiosInstance from '../services/axiosConfig';
 
 const Profile = () => {
   const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -17,10 +18,31 @@ const Profile = () => {
           return;
         }
 
-        // Essayer de récupérer les infos utilisateur depuis le JWT
-        // ou depuis une route /api/me
-        const response = await axiosInstance.get('/user/profile');
-        setUser(response.data);
+        // Essayer de récupérer les infos utilisateur
+        const profileRes = await axiosInstance.get('/user/profile');
+        setUser(profileRes.data);
+
+        // Essayer de récupérer SES commandes
+        // Le backend doit filtrer par l'utilisateur connecté sur la route /orders
+        try {
+          const ordersRes = await axiosInstance.get('/orders');
+          
+          let ordersData = [];
+          if (Array.isArray(ordersRes.data)) {
+            ordersData = ordersRes.data;
+          } else if (ordersRes.data.member) {
+            ordersData = ordersRes.data.member;
+          } else if (ordersRes.data['hydra:member']) {
+            ordersData = ordersRes.data['hydra:member'];
+          } else if (ordersRes.data.data) {
+            ordersData = ordersRes.data.data;
+          }
+          
+          setOrders(ordersData);
+        } catch (e) {
+          console.warn("Impossible de charger les commandes:", e);
+        }
+
       } catch (err) {
         console.error('Erreur lors du chargement du profil:', err);
         setError('Impossible de charger votre profil');
@@ -35,7 +57,7 @@ const Profile = () => {
       }
     };
 
-    fetchProfile();
+    fetchData();
   }, [navigate]);
 
   if (loading) {
@@ -137,6 +159,43 @@ const Profile = () => {
           Aucune donnée utilisateur disponible
         </div>
       )}
+
+      {/* HISTORIQUE DES COMMANDES */}
+      <div className="mt-12">
+        <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-6">
+          📦 <span className="text-indigo-400">Mes Commandes</span>
+        </h3>
+
+        {orders.length === 0 ? (
+          <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl text-center text-slate-500">
+            Tu n'as pas encore passé de commande.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <div key={order.id} className="bg-slate-900 border border-slate-800 p-6 rounded-xl flex justify-between items-center hover:border-indigo-500/50 transition-colors">
+                <div>
+                  <div className="text-white font-bold mb-1">
+                    Commande #{order.id}
+                  </div>
+                  <div className="text-slate-400 text-sm">
+                    {order.createdAt ? new Date(order.createdAt).toLocaleDateString('fr-FR') : 'Date inconnue'}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-black text-indigo-400">
+                    {order.totalPrice || order.totalPrix || 0} €
+                  </div>
+                  <span className="inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30">
+                    {order.status || 'Payée'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };
