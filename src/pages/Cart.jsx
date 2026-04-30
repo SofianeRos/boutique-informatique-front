@@ -1,4 +1,9 @@
+import { useState } from 'react';
+import axiosInstance from '../services/axiosConfig';
+
 const Cart = ({ cart, setCart }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState('');
   
   // 🧮 On calcule le prix total de tous les PC du panier
   const totalPrix = cart.reduce((somme, product) => somme + parseFloat(product.prix), 0);
@@ -8,6 +13,40 @@ const Cart = ({ cart, setCart }) => {
     // On garde tous les produits SAUF celui sur lequel on a cliqué
     const nouveauPanier = cart.filter((_, index) => index !== indexToRemove);
     setCart(nouveauPanier);
+  };
+
+  const handleCheckout = async () => {
+    try {
+      setIsProcessing(true);
+      setError('');
+
+      // On prépare les données à envoyer au backend (format exact demandé par le backend Symfony)
+      const products = cart.map(product => ({
+        name: product.nom,
+        price: parseFloat(product.prix),
+        quantity: 1 // À adapter si tu gères les quantités
+      }));
+
+      // Appel vers ton endpoint backend qui va générer la session Stripe Checkout
+      const response = await axiosInstance.post('/create-checkout-session', {
+        cart: products
+      });
+
+      // Le backend doit renvoyer l'URL de la session Stripe
+      if (response.data.url) {
+        // Redirection vers la page de paiement Stripe (Hosted Checkout)
+        window.location.href = response.data.url;
+      } else {
+        setError("Erreur : l'URL de paiement n'a pas été générée par le serveur.");
+      }
+    } catch (err) {
+      console.error('Erreur Stripe Checkout :', err);
+      // On récupère le message d'erreur précis du backend s'il existe
+      const backendMessage = err.response?.data?.error || err.response?.data?.message || err.message;
+      setError(`Le serveur a refusé la requête (400) : ${backendMessage}`);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -61,11 +100,22 @@ const Cart = ({ cart, setCart }) => {
               </h2>
             </div>
           </div>
+
+          {/* Affichage des erreurs de paiement */}
+          {error && (
+            <div className="bg-red-500/20 border border-red-500/40 text-red-300 p-4 rounded-lg mb-6 text-center italic">
+              {error}
+            </div>
+          )}
           
           {/* Bouton paiement */}
           <div className="text-center">
-            <button className="bg-purple-600 hover:bg-purple-500 text-white px-12 py-4 rounded-lg font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-[0_0_25px_rgba(147,51,234,0.4)] active:scale-95">
-              💳 Valider la commande
+            <button 
+              onClick={handleCheckout} 
+              disabled={isProcessing}
+              className={`bg-purple-600 ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-500'} text-white px-12 py-4 rounded-lg font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-[0_0_25px_rgba(147,51,234,0.4)] active:scale-95`}
+            >
+              {isProcessing ? '🔄 Traitement...' : '💳 Payer avec Stripe'}
             </button>
           </div>
         </>

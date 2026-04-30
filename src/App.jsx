@@ -8,6 +8,8 @@ import Admin from './pages/Admin';
 import AdminProducts from './pages/AdminProducts';
 import AdminUsers from './pages/AdminUsers';
 import Cart from './pages/Cart';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel';
 import Event from './pages/Event';
 import AdminEvents from './pages/AdminEvents';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -128,6 +130,8 @@ function App() {
           <Route path="/admin/users" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<AdminUsers />} requiredRole="ROLE_ADMIN" userRoles={userRoles} />} />
           <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<Profile />} />} />
           <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
+          <Route path="/success" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<PaymentSuccess setCart={setCart} />} />} />
+          <Route path="/cancel" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<PaymentCancel />} />} />
         </Routes>
       </main>
     </Router>
