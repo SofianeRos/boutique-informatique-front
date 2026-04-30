@@ -69,23 +69,28 @@ const Admin = () => {
             </div>
           </Link>
 
-          {/* Section Utilisateurs (Futur) */}
-          <div className="group bg-slate-900 border border-slate-800 rounded-xl p-8 opacity-50 cursor-not-allowed">
+          {/* Section Utilisateurs */}
+          <Link 
+            to="/admin/users"
+            className="group bg-slate-900 border border-slate-800 rounded-xl p-8 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all cursor-pointer"
+          >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-2xl font-black text-white">
+                <h2 className="text-2xl font-black text-white group-hover:text-blue-400 transition-colors">
                   Utilisateurs
                 </h2>
                 <p className="text-slate-400 text-sm mt-1">Gestion des comptes</p>
               </div>
             </div>
             <p className="text-slate-400 mb-4">
-              Gérer les utilisateurs et leurs rôles. Promouvoir/retirer les permissions admin.
+              Gérez les utilisateurs inscrits. Possibilité de consulter et de supprimer des comptes utilisateurs de la plateforme.
             </p>
-            <div className="text-slate-500 text-sm font-bold">
-              ⏰ Bientôt disponible
+            <div className="flex gap-2 text-blue-400 text-sm font-bold">
+              <span>Voir</span>
+              <span>•</span>
+              <span>Supprimer</span>
             </div>
-          </div>
+          </Link>
 
           {/* Section Statistiques (Futur) */}
           <div className="group bg-slate-900 border border-slate-800 rounded-xl p-8 opacity-50 cursor-not-allowed">

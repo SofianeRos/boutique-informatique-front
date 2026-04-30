@@ -23,7 +23,16 @@ const AdminEvents = () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get('/events');
-      const data = Array.isArray(response.data) ? response.data : response.data['hydra:member'] || response.data.data || [];
+      let data = [];
+      if (Array.isArray(response.data)) {
+        data = response.data;
+      } else if (response.data.member) {
+        data = response.data.member;
+      } else if (response.data['hydra:member']) {
+        data = response.data['hydra:member'];
+      } else if (response.data.data) {
+        data = response.data.data;
+      }
       setEvents(data);
     } catch (error) {
       console.error('Erreur:', error);
