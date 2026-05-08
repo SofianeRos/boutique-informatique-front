@@ -4,6 +4,8 @@ import axiosInstance from '../services/axiosConfig';
 const Home = ({ addToCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('');
 
   useEffect(() => {
     axiosInstance.get('/products')
@@ -24,14 +26,46 @@ const Home = ({ addToCart }) => {
     </div>
   );
 
+  let filteredProducts = products.filter(p => 
+    p.nom.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  if (sortOrder === 'price-asc') {
+    filteredProducts.sort((a, b) => a.prix - b.prix);
+  } else if (sortOrder === 'price-desc') {
+    filteredProducts.sort((a, b) => b.prix - a.prix);
+  }
+
   return (
     <div>
-      <h2 className="text-3xl font-black text-center mb-12 uppercase tracking-tighter text-white">
+      <h2 className="text-3xl font-black text-center mb-8 uppercase tracking-tighter text-white">
          <span className="text-purple-500 shadow-purple-500/50">Hardware</span> Disponibles
       </h2>
+
+      {/* Barre de recherche et filtres */}
+      <div className="flex flex-col md:flex-row gap-4 mb-10 justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-xl">
+        <input 
+          type="text" 
+          placeholder="Rechercher un produit..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-1/2 bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 outline-none focus:border-purple-500 transition-colors"
+        />
+
+        <select 
+          value={sortOrder} 
+          onChange={(e) => setSortOrder(e.target.value)}
+          className="w-full md:w-1/4 bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 outline-none focus:border-purple-500 transition-colors cursor-pointer"
+        >
+          <option value="">Trier par prix</option>
+          <option value="price-asc">Prix : Croissant</option>
+          <option value="price-desc">Prix : Décroissant</option>
+        </select>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <div key={product.id} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-purple-500/50 transition-all group relative overflow-hidden">
             
             {/* Effet de halo au survol */}
