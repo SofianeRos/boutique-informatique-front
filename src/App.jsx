@@ -13,6 +13,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
 import Event from './pages/Event';
 import AdminEvents from './pages/AdminEvents';
+import LegalNotice from './pages/LegalNotice';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -134,8 +135,21 @@ function App() {
           <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
           <Route path="/success" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<PaymentSuccess setCart={setCart} />} />} />
           <Route path="/cancel" element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<PaymentCancel />} />} />
+          <Route path="/mentions-legales" element={<LegalNotice />} />
         </Routes>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-slate-900 border-t border-slate-800 mt-20 p-6 text-center text-slate-500 text-sm">
+        <p className="mb-2">© 2026 Boutique Informatique. Tous droits réservés.</p>
+        <div className="flex justify-center gap-4">
+          <Link to="/mentions-legales" className="hover:text-purple-400 transition-colors underline underline-offset-4">
+            Mentions Légales
+          </Link>
+          <span className="cursor-not-allowed text-slate-600">CGV (à venir)</span>
+          <span className="cursor-not-allowed text-slate-600">Contact (à venir)</span>
+        </div>
+      </footer>
     </Router>
   );
 }

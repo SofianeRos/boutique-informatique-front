@@ -43,10 +43,10 @@ Ce document liste les fonctionnalités implémentées et celles restant à faire
 
 - [ ] **Pages Produits Détaillées :** Créer une page spécifique pour voir le détail d'un produit (`ProductDetails.jsx`), si ce n'est pas géré via une modale sur l'accueil.
 - [x] **Filtres et Recherche :** Barre de recherche, tri par prix ajoutés.
-- [ ] **Historique des commandes :** Afficher les commandes passées dans le profil utilisateur (`Profile.jsx`).
+- [x] **Historique des commandes :** Afficher les commandes passées dans le profil utilisateur (`Profile.jsx`).
 - [ ] **Mot de passe oublié :** Flux de réinitialisation de mot de passe (Envoi d'email + page de nouveau mot de passe).
 - [ ] **Avis / Notes :** Possibilité de laisser un avis sur un produit ou un événement.
-- [ ] **Pages informatives :** Mentions légales, CGV, Contact.
+- [x] **Pages informatives :** Mentions légales (CGV et Contact à faire).
 
 ### 2. Optimisations & UI
 
