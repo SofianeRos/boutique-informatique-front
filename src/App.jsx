@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { Toaster, toast } from 'react-hot-toast';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
@@ -27,6 +28,17 @@ function App() {
 
   const addToCart = (product) => {
     setCart([...cart, product]);
+    toast.success(`${product.nom || 'Produit'} ajouté au panier !`, {
+      style: {
+        background: '#1e293b',
+        color: '#fff',
+        border: '1px solid #334155',
+      },
+      iconTheme: {
+        primary: '#a855f7',
+        secondary: '#fff',
+      },
+    });
   };
 
   const handleLoginSuccess = (token, roles = []) => {
@@ -49,17 +61,19 @@ function App() {
 
   return (
     <Router>
+      <Toaster position="bottom-right" reverseOrder={false} />
+      
       {/* Navbar avec effet "Glassmorphism" */}
       <nav className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
         <div className="px-6 py-4 flex items-center justify-between">
           
           {/* GAUCHE - Logo */}
-          <Link to={isAuthenticated ? "/home" : "/"} className="text-purple-500 font-black text-2xl uppercase tracking-widest hover:text-purple-400 transition-colors whitespace-nowrap">
+          <Link to={isAuthenticated ? "/home" : "/"} className="text-purple-500 font-black text-2xl uppercase tracking-widest hover:text-purple-400 transition-colors whitespace-nowrap" aria-label="Retour à l'accueil">
             BOUTIQUE
           </Link>
 
           {/* CENTRE - Liens de navigation */}
-          <div className="flex justify-center items-center gap-8 flex-1">
+          <div className="flex justify-center items-center gap-8 flex-1" role="navigation" aria-label="Navigation principale">
             <Link to={isAuthenticated ? "/home" : "/"} className="text-slate-300 font-bold hover:text-purple-400 transition-all uppercase tracking-widest text-sm hover:tracking-[0.2em]">
               Accueil
             </Link>
@@ -99,7 +113,7 @@ function App() {
 
           {/* DROITE - Panier et Logout */}
           <div className="flex items-center gap-4 whitespace-nowrap">
-            <Link to="/cart" className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-black shadow-[0_0_20px_rgba(147,51,234,0.3)] transition-all hover:scale-105 active:scale-95">
+            <Link to="/cart" className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-black shadow-[0_0_20px_rgba(147,51,234,0.3)] transition-all hover:scale-105 active:scale-95" aria-label="Voir le panier">
               PANIER ({cart.length})
             </Link>
 
@@ -107,6 +121,7 @@ function App() {
             {isAuthenticated && (
               <button
                 onClick={handleLogout}
+                aria-label="Se déconnecter"
                 className="text-slate-300 hover:text-red-400 transition-all px-3 py-2 hover:bg-slate-800/50 rounded-lg font-bold text-sm uppercase"
                 title="Se déconnecter"
               >

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import axiosInstance from '../services/axiosConfig';
 
 const Cart = ({ cart, setCart }) => {
@@ -11,8 +12,14 @@ const Cart = ({ cart, setCart }) => {
   // 🗑️ Fonction pour retirer un PC spécifique du panier
   const removeFromCart = (indexToRemove) => {
     // On garde tous les produits SAUF celui sur lequel on a cliqué
+    const productRemoved = cart[indexToRemove];
     const nouveauPanier = cart.filter((_, index) => index !== indexToRemove);
     setCart(nouveauPanier);
+    
+    toast(`${productRemoved?.nom || 'Produit'} retiré du panier`, {
+      icon: '🗑️',
+      style: { background: '#1e293b', color: '#fff', border: '1px solid #334155' }
+    });
   };
 
   const handleCheckout = async () => {

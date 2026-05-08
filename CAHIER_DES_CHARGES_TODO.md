@@ -50,9 +50,9 @@ Ce document liste les fonctionnalités implémentées et celles restant à faire
 
 ### 2. Optimisations & UI
 
-- [ ] **Accessibilité :** Vérifier le contraste, les balises alt, la navigation au clavier.
+- [x] **Accessibilité :** Vérifier le contraste, les balises alt, la navigation au clavier (Ajout global des attributs ARIA et labels accessibles).
 - [ ] **Responsive Design :** S'assurer que le site est fluide sur mobile et tablette.
-- [ ] **Notifications / Feedback :** Ajouter des "Toasts" (alertes) pour informer l'utilisateur des succès/erreurs (ajout au panier, connexion échouée, etc.).
+- [x] **Notifications / Feedback :** Ajouter des "Toasts" (alertes) pour informer l'utilisateur des succès/erreurs (ajout au panier, connexion échouée, retrait du panier, etc.) via `react-hot-toast`.
 - [ ] **SEO :** Balises meta, optimisation pour le référencement (si le projet le requiert).
 
 ### 3. Back-Office (Compléments)

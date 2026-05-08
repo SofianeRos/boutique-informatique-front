@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { toast } from 'react-hot-toast';
 import axiosInstance from '../services/axiosConfig';
 
 const Login = ({ onLoginSuccess }) => {
@@ -54,6 +55,9 @@ const Login = ({ onLoginSuccess }) => {
 
         setMessageType('success');
         setMessage('✅ Connexion réussie ! Redirection en cours...');
+        toast.success('Connexion réussie !', {
+          style: { background: '#1e293b', color: '#fff', border: '1px solid #334155' }
+        });
         
         setTimeout(() => {
           navigate('/home');
@@ -67,13 +71,19 @@ const Login = ({ onLoginSuccess }) => {
       setMessageType('error');
       
       // Meilleur message d'erreur
+      let errorMessage = '❌ Erreur de connexion.';
       if (error.response?.status === 401) {
-        setMessage('❌ Email ou mot de passe incorrect.');
+        errorMessage = '❌ Email ou mot de passe incorrect.';
       } else if (error.response?.data?.message) {
-        setMessage(`❌ ${error.response.data.message}`);
+        errorMessage = `❌ ${error.response.data.message}`;
       } else {
-        setMessage('❌ Erreur de connexion. Vérifiez que l\'API est accessible.');
+        errorMessage = '❌ Erreur de connexion. Vérifiez que l\'API est accessible.';
       }
+      
+      setMessage(errorMessage);
+      toast.error(errorMessage.replace('❌ ', ''), {
+        style: { background: '#1e293b', color: '#fff', border: '1px solid #334155' }
+      });
     } finally {
       setLoading(false);
     }

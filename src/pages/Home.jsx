@@ -45,17 +45,23 @@ const Home = ({ addToCart }) => {
 
       {/* Barre de recherche et filtres */}
       <div className="flex flex-col md:flex-row gap-4 mb-10 justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-xl">
+        <label htmlFor="search-input" className="sr-only">Rechercher un produit</label>
         <input 
+          id="search-input"
           type="text" 
           placeholder="Rechercher un produit..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          aria-label="Champ de recherche de produit"
           className="w-full md:w-1/2 bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 outline-none focus:border-purple-500 transition-colors"
         />
 
+        <label htmlFor="sort-select" className="sr-only">Trier par prix</label>
         <select 
+          id="sort-select"
           value={sortOrder} 
           onChange={(e) => setSortOrder(e.target.value)}
+          aria-label="Sélecteur de tri"
           className="w-full md:w-1/4 bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 outline-none focus:border-purple-500 transition-colors cursor-pointer"
         >
           <option value="">Trier par prix</option>
@@ -87,12 +93,13 @@ const Home = ({ addToCart }) => {
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t border-slate-800">
-                <span className="text-2xl font-black text-purple-400 italic">
+                <span className="text-2xl font-black text-purple-400 italic" aria-label={`Prix: ${product.prix} euros`}>
                   {product.prix} €
                 </span>
                 <button 
                   onClick={() => addToCart(product)}
                   disabled={product.stock_quantite === 0}
+                  aria-label={`Ajouter ${product.nom} au panier`}
                   className="bg-purple-600 hover:bg-purple-500 disabled:bg-slate-800 disabled:text-slate-600 text-white px-5 py-2 rounded-lg font-bold transition-all shadow-lg active:scale-90"
                 >
                   AJOUTER
