@@ -92,7 +92,7 @@ const Admin = () => {
             </div>
           </Link>
 
-          {/* Section Commandes (Nouveau) */}
+          {/* Section Commandes  */}
           <Link 
             to="/admin/orders"
             className="group bg-slate-900 border border-slate-800 rounded-xl p-8 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 transition-all cursor-pointer"
